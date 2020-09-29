@@ -43,7 +43,7 @@ def image_upload_view(request):
 
             return render(request, 'main/index.html', {'form': form,
                                                        'img_obj': img_obj,
-                                                       'img_proc': img_proc_pathtosave,
+                                                       'img_proc': im_name,
                                                        'img_proc_datas': img_proc_datas,
                                                        })
     else:

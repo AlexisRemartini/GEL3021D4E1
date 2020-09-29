@@ -6,7 +6,7 @@ img_add = 'D4\\main\\static\\main\\img\\produit01.jpg'
 def process(img_adress):
     #https://www.murtazahassan.com/courses/opencv-projects/
     #control + left click
-    pytesseract.pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+    pytesseract.pytesseract.tesseract_cmd = "/usr/local/Cellar/tesseract/4.1.1/bin/tesseract"
 
     img = cv2.imread(img_adress)
     #pytesseract only accept rgb, so we convert bgr to rgb
