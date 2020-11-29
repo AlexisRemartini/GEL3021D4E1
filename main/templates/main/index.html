@@ -62,8 +62,23 @@
                     <p> {{img_proc_ingredients}} </p>
                         <br>
                     <p style="font-weight: bold">VALEURS NUTRITIVES:</p>
-                    <p class="valeurs_nutritives-text"> {{img_proc_valeurs_nutritives}} </p>
-                        <br>
+                    {% if img_proc_valeurs_nutritives.items %}
+                    <table style="margin-left: auto; margin-right: auto;">
+                        <thead>
+                            <th style="text-align: left;">Nutriment</th>
+                            <th style="text-align: right;">Daily Value (%)</th>
+                        </thead>
+                        <tbody>
+                        {% for k, v in img_proc_valeurs_nutritives.items %}
+                            <tr>
+                                <td style="text-align: left;">{{k}}</td>
+                                <td style="text-align: right;">{{v}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+                    <br>
                     <p style="font-weight: bold">LOGOS:</p>
                     <p class="valeurs_nutritives-text"> {{img_proc_logos}} </p>
                 </div>

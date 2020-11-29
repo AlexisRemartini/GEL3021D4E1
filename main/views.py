@@ -2,14 +2,15 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 from io import BytesIO
-from django.shortcuts import render
-# Create your views here.
-from D4 import settings
-from .Vision.ReconnaissanceDImages import yolo_object_detection
-from .forms import ImageForm
-import cv2, cloudinary
+import cv2
+import cloudinary
 import cloudinary.uploader
 import numpy as np
+from django.shortcuts import render
+from django.conf import settings
+
+from .forms import ImageForm
+from .Vision.ReconnaissanceDImages import yolo_object_detection
 from .Vision.ReconnaissanceDeTexte import detect
 from .Vision.ReconnaissanceParCodeBarre import barcode
 
@@ -20,7 +21,7 @@ def image_upload_view(request):
         form = ImageForm(request.POST, request.FILES)
 
         if form.is_valid():
-            #formulaires invalides sinon
+            # formulaires invalides sinon
             image = request.FILES.get("image")
             image_stream = BytesIO(image.read())
             obj = form.save(commit=False)
@@ -41,9 +42,9 @@ def image_upload_view(request):
             fichier_json = ""
             barcode_str = None
             logos_detectes = []
-            logo0=None
-            logo1=None
-            logo2=None
+            logo0 = None
+            logo1 = None
+            logo2 = None
             if var == "barcode":
                 img_proc, barcode_str, text, fichier_json = barcode.get_string_barcode(img_file=img)
             else:
@@ -56,7 +57,7 @@ def image_upload_view(request):
                     os.path.join(settings.WEIGHTS_ROOT, "aliment_prepare_au_quebec.weights"),
                     os.path.join(settings.WEIGHTS_ROOT, "rain_fores.weights")
                 ]
-                cfgs = "main/Vision/ReconnaissanceDImages/yolov3_testing.cfg"
+                cfgs = os.path.join(settings.BASE_DIR, "main", "Vision", "ReconnaissanceDImages", "yolov3_testing.cfg")
                 logo0, img_proc = yolo_object_detection.detect_logo(img_file=img,
                                                                     weigths=weigths[0],
                                                                     cfgs=cfgs,
@@ -73,7 +74,10 @@ def image_upload_view(request):
                 logos_detectes.append(logo1)
                 logos_detectes.append(logo2)
 
-                img_proc, Text, valeurs_nutritives, ingredients = detect.detect_VN_ING(img_file=img_proc, using_gd_ocr=s, fichier=image)
+                img_proc, Text, valeurs_nutritives, ingredients = detect.detect_VN_ING(
+                    img_file=img_proc,
+                    using_gd_ocr=s,
+                    fichier=image)
 
             img_proc = cv2.imencode(".png", img_proc)[1].tobytes()
             result = cloudinary.uploader.upload(img_proc, public_id=obj.image_id + "proc", overwrite=True)

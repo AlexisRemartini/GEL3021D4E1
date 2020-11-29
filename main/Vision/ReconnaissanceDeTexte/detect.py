@@ -84,21 +84,21 @@ if os.environ.get("ENVIRONMENT", None) == "heroku":
     pytesseract.pytesseract.tesseract_cmd = "/app/.apt/usr/bin/tesseract"
 else:
     #le chemin de l'installation de tesseract
-    pytesseract.pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+    pytesseract.pytesseract.tesseract_cmd = os.environ.get("TESSERACT", "C:\\Program Files\\Tesseract-OCR\\tesseract.exe")
 
 @shared_task
 def detect_VN_ING(img_address=None, img_file=None, using_gd_ocr=0, fichier=None):
-
+    print('COUCOU using_gd_ocr: %s' % using_gd_ocr)
     img = img_file if img_file is not None else cv2.imread(img_address)
     # pytesseract only accept rgb, so we convert bgr to rgb
 
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    boxes = pytesseract.image_to_data(img)
+    img_array_cvt = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    boxes = pytesseract.image_to_data(img_array_cvt)
 
     #if fast == 0:
-    hImg, wImg, _ = img.shape
+    hImg, wImg, _ = img_array_cvt.shape
     conf = r'--oem 3 --psm 6 outputbase digits'
-    boxes = pytesseract.image_to_boxes(img, config=conf)
+    boxes = pytesseract.image_to_boxes(img_array_cvt, config=conf)
     boxes_splitted = boxes.splitlines()
     l1 = []
     l2 = []
@@ -108,8 +108,8 @@ def detect_VN_ING(img_address=None, img_file=None, using_gd_ocr=0, fichier=None)
         l2.append(b[1:])
         # print(b)
         x, y, w, h = int(b[1]), int(b[2]), int(b[3]), int(b[4])
-        cv2.rectangle(img, (x, hImg - y), (w, hImg - h), (50, 50, 255), 2)
-        cv2.putText(img, b[0], (x, hImg - y + 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (50, 50, 255), 2)
+        cv2.rectangle(img_array_cvt, (x, hImg - y), (w, hImg - h), (50, 50, 255), 2)
+        cv2.putText(img_array_cvt, b[0], (x, hImg - y + 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (50, 50, 255), 2)
     #######################################################################################################
     # boxes_splitted = boxes.splitlines()
     # text_splitted = []
@@ -136,7 +136,10 @@ def detect_VN_ING(img_address=None, img_file=None, using_gd_ocr=0, fichier=None)
     if using_gd_ocr == 1:
         try :
             drive = DriveStorage()
-
+        except Exception as e:
+            ingredients = "impossible d'accéder aux crédits d'authentification"
+            valeurs_nutritives = "impossible d'accéder aux crédits d'authentification"
+        else:
             # with open(img_add, "rb") as file:
             lien = drive.upload_file(fichier)
             file = urllib.request.urlopen(lien)
@@ -170,12 +173,11 @@ def detect_VN_ING(img_address=None, img_file=None, using_gd_ocr=0, fichier=None)
             #             t = re.search("[0-9].*", valeur)
             #             if t:
             #                 valeurs_nutritives[nutriment].append(t.group())
-        except:
-            ingredients = "impossible d'accéder aux crédits d'authentification"
-            valeurs_nutritives = "impossible d'accéder aux crédits d'authentification"
+        
     else:
         Text = pytesseract.image_to_string(img)
         Text_splitted = Text.split('\n')
+        print('COUCOU Text_splitted:', Text_splitted)
 
         #VALEURS NUTRITIVES
         valeurs_nutritives = {}
@@ -228,7 +230,7 @@ def detect_VN_ING(img_address=None, img_file=None, using_gd_ocr=0, fichier=None)
     print("--------------------------------------INGREDIENTS---------------------------------------------")
     print("\n \n ingredients: ", ingredients)
 
-    return img, Text, valeurs_nutritives, ingredients
+    return img_array_cvt, Text, valeurs_nutritives, ingredients
 
 def cleaner(ingredients):
     list_ingredients = ingredients
@@ -241,7 +243,7 @@ def cleaner(ingredients):
         list_ingredients = list_ingredients.replace(i,"")
     return list_ingredients
 
-img_add = "../../../media/images/produit01.jpg"
+# img_add = "../../../media/images/produit01.jpg"
 # img_add = "../../../media/images/produit04 (4).jpeg"
 # img_add = "../../../media/images/produit04.png"
 # img, Text, valeurs_nutritives, ingredients = detect_VN_ING(img_add, using_gd_ocr=1)
