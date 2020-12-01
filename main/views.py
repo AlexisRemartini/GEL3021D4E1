@@ -45,37 +45,53 @@ def image_upload_view(request):
             logo0 = None
             logo1 = None
             logo2 = None
+            nutriments = None
             if var == "barcode":
-                img_proc, barcode_str, text, fichier_json = barcode.get_string_barcode(img_file=img)
+                img_proc, barcode_str, text, fichier_json, nutriments = barcode.get_string_barcode(img_file=img)
+            if var == "logos":
+                weigths = [
+                    os.path.join(settings.WEIGHTS_ROOT, "lait_du_canada.weights"),
+                    os.path.join(settings.WEIGHTS_ROOT, "aliment_prepare_au_quebec.weights"),
+                    os.path.join(settings.WEIGHTS_ROOT, "rain_fores.weights"),
+                    os.path.join(settings.WEIGHTS_ROOT, "lait100_canadien.weights"),
+                    os.path.join(settings.WEIGHTS_ROOT, "aliment_du_quebec_circulaire.weights")
+                ]
+                cfgs = os.path.join(settings.BASE_DIR, "main", "Vision", "ReconnaissanceDImages", "yolov3_testing.cfg")
+
+                logo1, img_proc = yolo_object_detection.detect_logo(img_file=img,
+                                                                    weigths=weigths[1],
+                                                                    cfgs=cfgs,
+                                                                    class_name="Aliment préparé au Québec")
+                logo2, img_proc = yolo_object_detection.detect_logo(img_file=img,
+                                                                    weigths=weigths[2],
+                                                                    cfgs=cfgs,
+                                                                    class_name="Rain Forest Alliance")
+                logo4, img_proc = yolo_object_detection.detect_logo(img_file=img,
+                                                                    weigths=weigths[4],
+                                                                    cfgs=cfgs,
+                                                                    class_name="Aliment du quebec circulaire")
+                logo3, img_proc = yolo_object_detection.detect_logo(img_file=img,
+                                                                    weigths=weigths[3],
+                                                                    cfgs=cfgs,
+                                                                    class_name="Lait 100% canadien")
+                logo0, img_proc = yolo_object_detection.detect_logo(img_file=img,
+                                                                    weigths=weigths[0],
+                                                                    cfgs=cfgs,
+                                                                    class_name="Lait du canada")
+
+                logos_detectes.append(logo0)
+                logos_detectes.append(logo1)
+                logos_detectes.append(logo2)
+                logos_detectes.append(logo3)
+                logos_detectes.append(logo4)
             else:
                 s = 1
                 v = request.POST.get("vitesse")
                 if v == "non":
                     s = 0
-                weigths = [
-                    os.path.join(settings.WEIGHTS_ROOT, "lait_du_canada.weights"),
-                    os.path.join(settings.WEIGHTS_ROOT, "aliment_prepare_au_quebec.weights"),
-                    os.path.join(settings.WEIGHTS_ROOT, "rain_fores.weights")
-                ]
-                cfgs = os.path.join(settings.BASE_DIR, "main", "Vision", "ReconnaissanceDImages", "yolov3_testing.cfg")
-                logo0, img_proc = yolo_object_detection.detect_logo(img_file=img,
-                                                                    weigths=weigths[0],
-                                                                    cfgs=cfgs,
-                                                                    class_name="Lait du canada")
-                logo1, img_proc = yolo_object_detection.detect_logo(img_file=img_proc,
-                                                                    weigths=weigths[1],
-                                                                    cfgs=cfgs,
-                                                                    class_name="Aliment préparé au Québec")
-                logo2, img_proc = yolo_object_detection.detect_logo(img_file=img_proc,
-                                                                    weigths=weigths[2],
-                                                                    cfgs=cfgs,
-                                                                    class_name="Rain Forest Alliance")
-                logos_detectes.append(logo0)
-                logos_detectes.append(logo1)
-                logos_detectes.append(logo2)
 
                 img_proc, Text, valeurs_nutritives, ingredients = detect.detect_VN_ING(
-                    img_file=img_proc,
+                    img_file=img,
                     using_gd_ocr=s,
                     fichier=image)
 
@@ -91,6 +107,7 @@ def image_upload_view(request):
                            'img_proc_valeurs_nutritives': valeurs_nutritives,
                            'img_proc_logos': logos_detectes,
                            'barcode_datas': fichier_json,
+                           'nutriments': nutriments,
                            'radio': var,
                            'barcode_str': barcode_str,
                            })

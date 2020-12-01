@@ -50,8 +50,8 @@ def get_string_barcode(img_address=None, img_file=None):
     except:
         # print("Please enter a valide code")
         pass
-    description = ["Product brand", "Product name", "Nutriments", "Ingredients", "Countries"]
-    information = [marque, product_name, nutriments, ingredients, countries]
+    description = ["Product brand", "Product name", "Ingredients", "Countries"]
+    information = [marque, product_name, ingredients, countries]
     fichier = dict(zip(description, information))
 
     if len(barcodeData) < 2 or text == ""  or len(text)< 2:
@@ -59,7 +59,7 @@ def get_string_barcode(img_address=None, img_file=None):
         text = "Product not found"
         fichier = "Product not found"
 
-    return image, barcodeData, text, fichier
+    return image, barcodeData, text, fichier, nutriments
 
 # a, b, c = get_string_barcode(path)
 #

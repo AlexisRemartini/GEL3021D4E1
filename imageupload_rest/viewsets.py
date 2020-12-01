@@ -56,9 +56,11 @@ class UploadImageViewset(viewsets.ModelViewSet):
             weigths = [
                 os.path.join(settings.WEIGHTS_ROOT, "lait_du_canada.weights"),
                 os.path.join(settings.WEIGHTS_ROOT, "aliment_prepare_au_quebec.weights"),
-                os.path.join(settings.WEIGHTS_ROOT, "rain_fores.weights")
+                os.path.join(settings.WEIGHTS_ROOT, "rain_fores.weights"),
+                os.path.join(settings.WEIGHTS_ROOT, "lait100_canadien.weights"),
+                os.path.join(settings.WEIGHTS_ROOT, "aliment_du_quebec_circulaire.weights")
             ]
-            cfgs = "main/Vision/ReconnaissanceDImages/yolov3_testing.cfg"
+            cfgs = os.path.join(settings.BASE_DIR, "main", "Vision", "ReconnaissanceDImages", "yolov3_testing.cfg")
             logo0, img_proc = yolo_object_detection.detect_logo(img_file=img_array,
                                                                 weigths=weigths[0],
                                                                 cfgs=cfgs,
@@ -71,9 +73,20 @@ class UploadImageViewset(viewsets.ModelViewSet):
                                                                 weigths=weigths[2],
                                                                 cfgs=cfgs,
                                                                 class_name="Rain Forest Alliance")
+
+            logo4, img_proc = yolo_object_detection.detect_logo(img_file=img_array,
+                                                                weigths=weigths[4],
+                                                                cfgs=cfgs,
+                                                                class_name="Aliment du quebec circulaire")
+            logo3, img_proc = yolo_object_detection.detect_logo(img_file=img_array,
+                                                                weigths=weigths[3],
+                                                                cfgs=cfgs,
+                                                                class_name="Lait 100% canadien")
             logos_detectes.append(logo0)
             logos_detectes.append(logo1)
             logos_detectes.append(logo2)
+            logos_detectes.append(logo3)
+            logos_detectes.append(logo4)
 
             gd_ocr_param = request.query_params.get('gd_ocr', 0)
             response = {}
@@ -97,7 +110,9 @@ class UploadImageViewset(viewsets.ModelViewSet):
         if image is not None:
             img, _ = self.validate_image(image)
             code_barre = barcode.get_string_barcode(img_file=img)
-            return Response(code_barre[3], status=status.HTTP_200_OK)
+            # dic_j = code_barre[3].update(code_barre[4])
+            dic_j = {**code_barre[3], **{"nutriments": code_barre[4]}}
+            return Response(dic_j, status=status.HTTP_200_OK)
         else:
             return Response({'statut': 'echec'}, status=status.HTTP_400_BAD_REQUEST)
 

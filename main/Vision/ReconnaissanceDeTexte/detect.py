@@ -53,7 +53,7 @@ nutriments_principaux_13 = nutriments_principaux_13.split(",")
 nutriments_speciaux = "saturés, saturated, trans, polyinsaturés, oméga, monoinsaturés, fibres, sucres, B6, B-6, B12, B-12, vitamine,iron"
 nutriments_speciaux = nutriments_speciaux.split(",")
 nutriments_facultatifs = "folate, magnésium, niacine, phosphore, potassium, riboflavine, sélénium, thiamine, vitamine B12, vitamine B6, vitamine D, vitamine E, zinc" \
-                         ",Pantothénate,Valeur,Valeur é, Valeur énergétique"
+                         ",Apport,Sel,gras,matieres grasses,Pantothénate,Valeur,Valeur é, Valeur énergétique, carbo, fat, total, calo, Carbohydrate, Serving, energy,"
 nutriments_facultatifs = nutriments_facultatifs.split(",")
 unites = "g,mh,%,yg"
 all = nutriments_principaux_13 + nutriments_facultatifs + nutriments_speciaux
@@ -65,8 +65,7 @@ ingr = ingr.split(",")
 all = [unidecode.unidecode(i).lower() for i in all]
 all = list(set(all))
 all = [i.strip() for i in all]
-# print(all)
-
+# print(sorted(all))
 ingr = [unidecode.unidecode(i).lower() for i in ingr]
 ingr = list(set(ingr))
 
@@ -88,7 +87,6 @@ else:
 
 @shared_task
 def detect_VN_ING(img_address=None, img_file=None, using_gd_ocr=0, fichier=None):
-    print('COUCOU using_gd_ocr: %s' % using_gd_ocr)
     img = img_file if img_file is not None else cv2.imread(img_address)
     # pytesseract only accept rgb, so we convert bgr to rgb
 
@@ -147,37 +145,92 @@ def detect_VN_ING(img_address=None, img_file=None, using_gd_ocr=0, fichier=None)
             for line in file:
                 decoded_line = line.decode("utf-8")
                 Text_splitted.append(decoded_line)
-
             # detect_with_gd_ocr.process(img_address=img_address)
             # with open("output.txt", "r", encoding="utf-8") as file:
             #     Text_splitted = file.readlines()
+            debut_ing = []
+            debut_val = []
+            fin_ing = 0
+            fin_val = 0
+            n = 0
             for i in Text_splitted:
                 txt_to_search = unidecode.unidecode(i).lower()
-                t_ingr = re.search("ingr",txt_to_search)
-                t_val = re.search("val", txt_to_search)
-                if t_ingr:
-                    ingredients.append(cleaner(i))
-                if t_val:
-                    valeurs_nutritives.append(i)
+                udec = unidecode.unidecode(i).lower()
+                t_ingr = udec.find("ngred")
+                t_val = udec.find("nutri")
+                if t_ingr != -1:
+                    debut_ing.append(n)
+                if t_val != -1:
+                    debut_val.append(n)
                 for j in all:
-                    t_val = re.search(j, txt_to_search)
-                    if t_val:
-                        valeurs_nutritives.append(i)
-            valeurs_nutritives = list(set(valeurs_nutritives))
-                # valeurs_non_classees.split(" ")
-            # print(ingredients)
-            # print(valeurs_nutritives)
-            # for nutriment in all:
-            #     for valeur in valeurs_non_classees:
-            #         if valeur.find(nutriment):
-            #             t = re.search("[0-9].*", valeur)
-            #             if t:
-            #                 valeurs_nutritives[nutriment].append(t.group())
-        
+                    if i.find(j) != -1:
+                        fin_val = n
+                n += 1
+            # print("bornes ing: ", debut_ing, ": ", fin_ing)
+            # print("bornes val: ", debut_val, ": ", fin_val)
+
+            for deb in debut_ing:
+                ingredients.append(Text_splitted[deb:deb+3])
+            t = []
+            for i in ingredients:
+                for j in i:
+                    t.append(j)
+            ingredients = t
+            ingredients = ",".join(ingredients)
+            ingredients = cleaner(ingredients)
+            # try:
+            #     valeurs_nutritives = Text_splitted[min(debut_val):fin_val]
+            # except:
+            valeurs_nutritives = Text_splitted
+            valeurs_nutritives = unidecode.unidecode(",".join(valeurs_nutritives)).lower()
+            pos = []
+            valeurs_nutritives_list = []
+            for nutriment in all:
+                try:
+                    pos_c = re.search(nutriment, valeurs_nutritives).span()
+                    pos.append(pos_c)
+                except:
+                    pass
+
+            deb_vl = 0
+            if len(pos) > 1:
+                fin_vl = pos[1][0]
+            else:
+               fin_vl = pos[0][1]
+
+            # print("valeurs_nutritivesvaleurs_nutritives", valeurs_nutritives)
+            n = 0
+            pos = sorted(pos)
+            for i in pos:
+                if n+1< len(pos):
+                    valeurs_nutritives_list.append(valeurs_nutritives[i[0]: pos[n + 1][0]])
+                n+=1
+
+            valeurs_nutritives_list = list(set(valeurs_nutritives_list))
+            valeurs_nutritives_classees = {}
+            indices_val = []
+            iv =0
+            for j in all:
+                if j != "" and j != " " and j != "\n":
+                    valeurs_nutritives_classees[j] = []
+                    for i in valeurs_nutritives_list:
+                        if (unidecode.unidecode(i).replace(" ", "")).lower().find(j.strip()) != -1:
+                            indices_val.append(iv)
+                            t = re.search("[0-9].*", i)
+                            if t:
+                                valeurs_nutritives_classees[j].append(t.group())
+                        iv += 1
+            for k in list(valeurs_nutritives_classees):
+                if valeurs_nutritives_classees[k] == []:
+                    valeurs_nutritives_classees.pop(k)
+            for k, v in valeurs_nutritives_classees.items():
+                for i in range(len(v)):
+                    v[i] = v[i].replace("9 ", "g ")
+            valeurs_nutritives = valeurs_nutritives_classees
     else:
         Text = pytesseract.image_to_string(img)
         Text_splitted = Text.split('\n')
-        print('COUCOU Text_splitted:', Text_splitted)
+        # print('COUCOU Text_splitted:', Text_splitted)
 
         #VALEURS NUTRITIVES
         valeurs_nutritives = {}
@@ -200,47 +253,53 @@ def detect_VN_ING(img_address=None, img_file=None, using_gd_ocr=0, fichier=None)
                 v[i] = v[i].replace("9 ", "g ")
 
         #INGREDIENTS
-        debut = None
+        debut = []
         for i in range(len(Text_splitted)):
             if re.search("ingr",unidecode.unidecode(Text_splitted[i]).lower()):
-                debut = i
-                break
-        if len(indices_val)>0:
-            fin = min(indices_val)
-        else:
-            fin = None
-        if debut is not None:
-            if (fin < debut):
-                ingredients = Text_splitted[debut:]
-            elif fin is not None:
-                ingredients = Text_splitted[debut:fin]
-            ingredients = ",".join(ingredients).strip()
-            # for i ii
-            ingredients = cleaner(ingredients)
-    print("--------------------------------------TEXTE RECONNU---------------------------------------------")
-    for i in Text_splitted:
-        print(i)
-    print("--------------------------------------VALEURS NUTRITIVES---------------------------------------------")
+                debut.append(i)
 
-    if isinstance(valeurs_nutritives, dict):
-        for k, v in valeurs_nutritives.items():
-            print(k, v)
-    elif isinstance(valeurs_nutritives, list):
-        print(valeurs_nutritives)
-    print("--------------------------------------INGREDIENTS---------------------------------------------")
-    print("\n \n ingredients: ", ingredients)
+
+        if len(debut) > 0:
+            for deb in debut:
+                ingredients.append(Text_splitted[deb:deb+4])
+        t = []
+        for j in ingredients:
+            for i in j:
+                t.append(i)
+        ingredients = t
+        ingredients = list(set(ingredients))
+        ingredients = ",".join(ingredients).strip()
+        ingredients = cleaner(ingredients)
+    #
+    # print("--------------------------------------TEXTE RECONNU---------------------------------------------")
+    # for i in Text_splitted:
+    #     print(i)
+    # print("--------------------------------------VALEURS NUTRITIVES---------------------------------------------")
+    #
+    # if isinstance(valeurs_nutritives, dict):
+    #     for k, v in valeurs_nutritives.items():
+    #         print(k, v)
+    # elif isinstance(valeurs_nutritives, list):
+    #     for m in valeurs_nutritives:
+    #         print(m)
+    # print("--------------------------------------INGREDIENTS---------------------------------------------")
+    # print("\n \n ingredients: ", ingredients)
+
 
     return img_array_cvt, Text, valeurs_nutritives, ingredients
 
 def cleaner(ingredients):
     list_ingredients = ingredients
+    n=0
     for i in list_ingredients:
         if i.isalpha() == False and i.isdigit() == False \
                 and i != "%" and i != "," and i != "." and i != " " and i != "(" and i != ")":
             list_ingredients = list_ingredients.replace(i, ",")
-
-    for i in ingr:
-        list_ingredients = list_ingredients.replace(i,"")
+    try:
+        list_ingredients = unidecode.unidecode(list_ingredients).lower().replace("ingredients", "")
+        list_ingredients = unidecode.unidecode(list_ingredients).lower().replace("ingredient", "")
+    except:
+        pass
     return list_ingredients
 
 # img_add = "../../../media/images/produit01.jpg"
