@@ -1,16 +1,9 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from pyzbar import pyzbar
-import argparse
 import cv2
 import requests
 import json
-#
-# ap = argparse.ArgumentParser()
-# ap.add_argument("-i", "--image", required=True, help="Path to input image")
-# args = vars(ap.parse_args())
-
-#image = cv2.imread(args["image"])
 
 path = "/D4/media/images/produit01.jpg"
 @shared_task

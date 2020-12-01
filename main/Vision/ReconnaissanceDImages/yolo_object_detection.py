@@ -2,9 +2,6 @@ from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 import cv2
 import numpy as np
-import glob
-import random
-
 
 # Load Yolo
 # weigths = "yolov3_training_last.weights"

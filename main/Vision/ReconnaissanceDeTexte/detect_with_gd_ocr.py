@@ -1,14 +1,7 @@
-import urllib
-import mimetypes
-import os
-
 from django.conf import settings
-import pydrive
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from pydrive.auth import ServiceAccountCredentials
-import requests
-
 
 class DriveStorage:
 

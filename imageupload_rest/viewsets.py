@@ -51,42 +51,14 @@ class UploadImageViewset(viewsets.ModelViewSet):
         image = self.get_object()
         if image is not None:
             img_array, img_stream = self.validate_image(image)
-
             logos_detectes = []
-            weigths = [
-                os.path.join(settings.WEIGHTS_ROOT, "lait_du_canada.weights"),
-                os.path.join(settings.WEIGHTS_ROOT, "aliment_prepare_au_quebec.weights"),
-                os.path.join(settings.WEIGHTS_ROOT, "rain_fores.weights"),
-                os.path.join(settings.WEIGHTS_ROOT, "lait100_canadien.weights"),
-                os.path.join(settings.WEIGHTS_ROOT, "aliment_du_quebec_circulaire.weights")
-            ]
-            cfgs = os.path.join(settings.BASE_DIR, "main", "Vision", "ReconnaissanceDImages", "yolov3_testing.cfg")
-            logo0, img_proc = yolo_object_detection.detect_logo(img_file=img_array,
-                                                                weigths=weigths[0],
-                                                                cfgs=cfgs,
-                                                                class_name="Lait du canada")
-            logo1, img_proc = yolo_object_detection.detect_logo(img_file=img_array,
-                                                                weigths=weigths[1],
-                                                                cfgs=cfgs,
-                                                                class_name="Aliment préparé au Québec")
-            logo2, img_proc = yolo_object_detection.detect_logo(img_file=img_array,
-                                                                weigths=weigths[2],
-                                                                cfgs=cfgs,
-                                                                class_name="Rain Forest Alliance")
-
-            logo4, img_proc = yolo_object_detection.detect_logo(img_file=img_array,
-                                                                weigths=weigths[4],
-                                                                cfgs=cfgs,
-                                                                class_name="Aliment du quebec circulaire")
-            logo3, img_proc = yolo_object_detection.detect_logo(img_file=img_array,
-                                                                weigths=weigths[3],
-                                                                cfgs=cfgs,
-                                                                class_name="Lait 100% canadien")
-            logos_detectes.append(logo0)
-            logos_detectes.append(logo1)
-            logos_detectes.append(logo2)
-            logos_detectes.append(logo3)
-            logos_detectes.append(logo4)
+            img_proc = img_array
+            for i in settings.WEIGHTS:
+                logo, img_proc = yolo_object_detection.detect_logo(img_file=img_proc,
+                                                                   weigths=i[0],
+                                                                   cfgs=settings.CFG,
+                                                                   class_name=i[1])
+                logos_detectes.append(logo)
 
             gd_ocr_param = request.query_params.get('gd_ocr', 0)
             response = {}
@@ -99,10 +71,14 @@ class UploadImageViewset(viewsets.ModelViewSet):
             else:
                 img_proc, Text, valeurs_nutritives, ingredients = detect.detect_VN_ING(
                     img_file=img_array, using_gd_ocr=gd_ocr_param, fichier=img_stream)
-                response = {'statut': 'success', 'Ingrédients': ingredients,'Valeurs nutritives': valeurs_nutritives, 'img_proc_logos': logos_detectes}
+                response = {'statut': 'success',
+                            'Ingrédients': ingredients,
+                            'Valeurs nutritives': valeurs_nutritives,
+                            'img_proc_logos': logos_detectes}
             return Response(response, status=status_code)
         else:
-            return Response({'statut': 'echec'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'statut': 'echec'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
     def reconBarcode(self, request, pk=None):
@@ -110,7 +86,6 @@ class UploadImageViewset(viewsets.ModelViewSet):
         if image is not None:
             img, _ = self.validate_image(image)
             code_barre = barcode.get_string_barcode(img_file=img)
-            # dic_j = code_barre[3].update(code_barre[4])
             dic_j = {**code_barre[3], **{"nutriments": code_barre[4]}}
             return Response(dic_j, status=status.HTTP_200_OK)
         else:
@@ -119,7 +94,6 @@ class UploadImageViewset(viewsets.ModelViewSet):
     def validate_image(self, image):
         image = cloudinary.CloudinaryImage(image.image_id)
         r = requests.get(image.url, stream=True)
-        print(image.url)
         if r.ok:
             r.raw.decode_content = True
             img_stream = BytesIO(r.raw.read())

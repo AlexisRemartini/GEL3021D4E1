@@ -162,3 +162,19 @@ CLIENT_SECRET_FILE_SERVICEACCOUNT = os.path.join(
     'ReconnaissanceDeTexte',
     'credentials_compte_service.json')
 # APPLICATION_NAME = 'Drive API Python Quickstart'
+
+#ajouter le nom du fichier et le nom du logos sous la forme: ("nom_du_fichier.weights", "Nom du logos")
+weights_name = [
+    ("lait_du_canada.weights", "Lait du canada"),
+    ("aliment_prepare_au_quebec.weights", "Aliment préparé au Québec"),
+    ("rain_fores.weights", "Rain Forest Alliance"),
+    ("lait100_canadien.weights", "Lait 100% canadien"),
+    ("aliment_du_quebec_circulaire.weights", "Aliment du quebec circulaire"),
+    ("organic_food_canada.weights", "Organic Food Canada"),
+    ]
+
+WEIGHTS = []
+for i in weights_name:
+    WEIGHTS.append((os.path.join(WEIGHTS_ROOT, i[0]), i[1]))
+
+CFG = os.path.join(BASE_DIR, "main", "Vision", "ReconnaissanceDImages", "yolov3_testing.cfg")
