@@ -69,7 +69,7 @@ Il est possible de réaliser la plupart des étapes ci-dessus en se rendant sur 
 Le traitement de la reconnaissance de logos n'y ait pas supporté par contre.
 
 
-##divers
+## divers
 
 En cas de problèmes de librairies avec pyzbar, visitez ce lien.
 https://github.com/NaturalHistoryMuseum/pyzbar/issues/13
