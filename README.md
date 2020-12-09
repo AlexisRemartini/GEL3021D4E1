@@ -67,3 +67,9 @@ Vous pouvez également faire votre propre fichier de requêtes pour l'api ou pas
 Il est possible de réaliser la plupart des étapes ci-dessus en se rendant sur le lien : http://alivisiond4.herokuapp.com/
 
 Le traitement de la reconnaissance de logos n'y ait pas supporté par contre.
+
+
+##divers
+
+En cas de problèmes de librairies avec pyzbar, visitez ce lien.
+https://github.com/NaturalHistoryMuseum/pyzbar/issues/13
