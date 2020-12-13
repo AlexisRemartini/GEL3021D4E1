@@ -2,30 +2,41 @@
 DESIGN IV - projet Ali Quebec
 
 # Dépendances à installer: 
-Creer un virtual environment pour isoler localement nos packages et nos dépendences
+Créez un virtual environment pour isoler localement nos packages et nos dépendences
 ``` bash
 python3 -m venv env
 ```
 ``` bash
-source env/bin/activate  # On Windows, use env\scripts\activate.bat
+env\scripts\activate.bat # sur Linux, source env/bin/activate   
 ```
 ```bash
 pip install -r requirements.txt
 ```
 ## Tesseract
-installer tesseract dans le repertoire par défaut C:\Program Files\Tesseract-OCR ou alors le changer dans detect.py.
+Installez tesseract dans le repertoire par défaut C:\Program Files\Tesseract-OCR ou alors le changer dans detect.py.
 
 https://github.com/UB-Mannheim/tesseract/wiki
 
 ## Clé cloudinary
-Rajouter dans les variables d'environnement la clé cloudinary 
+Contactez le responsable du projet pour avoir une copie de la clé cloudnary ou créez-vous un compte.
+
+Rajoutez ensuite la clé cloudinary dans les variables d'environnement de votre système d'exploitation.
+
+Finalement, activez la clé dans la racine du projet en lancant la commande
+```bash
+python manage.py runserver
+```
+
 ## Fichiers .weights pour la détections de logos
 https://drive.google.com/drive/folders/1bdG7JC8ITShO2RIjrGs-FbZtlANxaoBk?usp=sharing
 
 # Lancer le serveur en local
 ```bash
-python manage.py runserver
+set CLOUDINARY_URL=cloudinary://123456789012345:abcdefghijklmnopqrstuvwxyzA@cloud_name
+asasad
 ```
+
+plus de détails sur https://cloudinary.com/documentation/django_integration
 
 # Utilisation 1 - GUI
 
