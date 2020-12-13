@@ -24,7 +24,10 @@ Rajoutez ensuite la clé cloudinary dans les variables d'environnement de votre 
 
 Finalement, activez la clé dans la racine du projet en lancant la commande
 ```bash
-python manage.py runserver
+set CLOUDINARY_URL=cloudinary://123456789012345:abcdefghijklmnopqrstuvwxyzA@cloud_name
+```
+```bash
+export CLOUDINARY_URL=cloudinary://123456789012345:abcdefghijklmnopqrstuvwxyzA@cloud_name
 ```
 
 ## Fichiers .weights pour la détections de logos
@@ -32,8 +35,7 @@ https://drive.google.com/drive/folders/1bdG7JC8ITShO2RIjrGs-FbZtlANxaoBk?usp=sha
 
 # Lancer le serveur en local
 ```bash
-set CLOUDINARY_URL=cloudinary://123456789012345:abcdefghijklmnopqrstuvwxyzA@cloud_name
-asasad
+python manage.py runserver
 ```
 
 plus de détails sur https://cloudinary.com/documentation/django_integration
