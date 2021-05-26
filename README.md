@@ -34,6 +34,19 @@ export CLOUDINARY_URL=cloudinary://123456789012345:abcdefghijklmnopqrstuvwxyzA@c
 https://drive.google.com/drive/folders/1bdG7JC8ITShO2RIjrGs-FbZtlANxaoBk?usp=sharing
 
 # Lancer le serveur en local
+
+## La première fois
+```bash
+python manage.py makemigrations
+```
+```bash
+python manage.py migrate
+```
+```bash
+python manage.py runserver
+```
+
+## Ensuite
 ```bash
 python manage.py runserver
 ```
